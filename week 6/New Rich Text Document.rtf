@@ -1,0 +1,254 @@
+{\rtf1\ansi\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\ul\b\f0\fs48\lang9 linearRegCostFunction.m\ulnone\b0\fs22\par
+\par
+function [J, grad] = linearRegCostFunction(X, y, theta, lambda)\par
+  %LINEARREGCOSTFUNCTION Compute cost and gradient for regularized linear \par
+  %regression with multiple variables\par
+  %   [J, grad] = LINEARREGCOSTFUNCTION(X, y, theta, lambda) computes the \par
+  %   cost of using theta as the parameter for linear regression to fit the \par
+  %   data points in X and y. Returns the cost in J and the gradient in grad\par
+  \par
+  % Initialize some useful values\par
+  m = length(y); % number of training examples\par
+  \par
+  % You need to return the following variables correctly \par
+  J = 0;\par
+  grad = zeros(size(theta));\par
+  \par
+  % ====================== YOUR CODE HERE ======================\par
+  % Instructions: Compute the cost and gradient of regularized linear \par
+  %               regression for a particular choice of theta.\par
+  %\par
+  %               You should set J to the cost and grad to the gradient.\par
+  %DIMENSIONS:\par
+  %   X = 12x2 = m x 1\par
+  %   y = 12x1 = m x 1\par
+  %   theta = 2x1 = (n+1) x 1\par
+  %   grad = 2x1 = (n+1) x 1\par
+  \par
+  h_x = X * theta; % 12x1\par
+  J = (1/(2*m))*sum((h_x - y).^2) + (lambda/(2*m))*sum(theta(2:end).^2); % scalar\par
+  \par
+  % grad(1) = (1/m)*sum((h_x-y).*X(:,1)); % scalar == 1x1\par
+  grad(1) = (1/m)*(X(:,1)'*(h_x-y)); % scalar == 1x1\par
+  grad(2:end) = (1/m)*(X(:,2:end)'*(h_x-y)) + (lambda/m)*theta(2:end); % n x 1\par
+  % =========================================================================\par
+  \par
+  grad = grad(:);\par
+\par
+end\par
+\ul\b\fs48  learningCurve.m :\ulnone\b0\fs22\par
+\par
+function [error_train, error_val] = ...\par
+      learningCurve(X, y, Xval, yval, lambda)\par
+  %LEARNINGCURVE Generates the train and cross validation set errors needed \par
+  %to plot a learning curve\par
+  %   [error_train, error_val] = ...\par
+  %       LEARNINGCURVE(X, y, Xval, yval, lambda) returns the train and\par
+  %       cross validation set errors for a learning curve. In particular, \par
+  %       it returns two vectors of the same length - error_train and \par
+  %       error_val. Then, error_train(i) contains the training error for\par
+  %       i examples (and similarly for error_val(i)).\par
+  %\par
+  %   In this function, you will compute the train and test errors for\par
+  %   dataset sizes from 1 up to m. In practice, when working with larger\par
+  %   datasets, you might want to do this in larger intervals.\par
+  %\par
+  \par
+  % Number of training examples\par
+  m = size(X, 1);\par
+  \par
+  % You need to return these values correctly\par
+  error_train = zeros(m, 1);\par
+  error_val   = zeros(m, 1);\par
+  \par
+  % ====================== YOUR CODE HERE ======================\par
+  % Instructions: Fill in this function to return training errors in \par
+  %               error_train and the cross validation errors in error_val. \par
+  %               i.e., error_train(i) and \par
+  %               error_val(i) should give you the errors\par
+  %               obtained after training on i examples.\par
+  %\par
+  % Note: You should evaluate the training error on the first i training\par
+  %       examples (i.e., X(1:i, :) and y(1:i)).\par
+  %\par
+  %       For the cross-validation error, you should instead evaluate on\par
+  %       the _entire_ cross validation set (Xval and yval).\par
+  %\par
+  % Note: If you are using your cost function (linearRegCostFunction)\par
+  %       to compute the training and cross validation error, you should \par
+  %       call the function with the lambda argument set to 0. \par
+  %       Do note that you will still need to use lambda when running\par
+  %       the training to obtain the theta parameters.\par
+  %\par
+  % Hint: You can loop over the examples with the following:\par
+  %\par
+  %       for i = 1:m\par
+  %           % Compute train/cross validation errors using training examples \par
+  %           % X(1:i, :) and y(1:i), storing the result in \par
+  %           % error_train(i) and error_val(i)\par
+  %           ....\par
+  %           \par
+  %       end\par
+  %\par
+  \par
+  % ---------------------- Sample Solution ----------------------\par
+  \par
+  %DIMENSIONS:\par
+  %   error_train = m x 1\par
+  %   error_val   = m x 1 \par
+  \par
+  for i = 1:m\par
+      Xtrain = X(1:i,:);\par
+      ytrain = y(1:i);\par
+      \par
+      theta = trainLinearReg(Xtrain, ytrain, lambda);\par
+      \par
+      error_train(i) = linearRegCostFunction(Xtrain, ytrain, theta, 0); %for lambda = 0;\par
+      error_val(i)   = linearRegCostFunction(Xval, yval, theta, 0); %for lambda = 0;\par
+  end\par
+  \par
+  % -------------------------------------------------------------\par
+  \par
+  % =========================================================================\par
+\par
+end\par
+\ul\b\fs44 polyFeatures.m :\ulnone\b0\fs22\par
+\par
+function [X_poly] = polyFeatures(X, p)\par
+  %POLYFEATURES Maps X (1D vector) into the p-th power\par
+  %   [X_poly] = POLYFEATURES(X, p) takes a data matrix X (size m x 1) and\par
+  %   maps each example into its polynomial features where\par
+  %   X_poly(i, :) = [X(i) X(i).^2 X(i).^3 ...  X(i).^p];\par
+  %\par
+  \par
+  \par
+  % You need to return the following variables correctly.\par
+  X_poly = zeros(numel(X), p); % m x p\par
+  \par
+  % ====================== YOUR CODE HERE ======================\par
+  % Instructions: Given a vector X, return a matrix X_poly where the p-th\par
+  %               column of X contains the values of X to the p-th power.\par
+  %\par
+  %\par
+  % Here, X does not include X0 == 1 column\par
+  \par
+  %%%% WORKING: Using for loop %%%%%%\par
+  % for i = 1:p\par
+  %     X_poly(:,i) = X(:,1).^i;\par
+  % end\par
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\par
+  \par
+  X_poly(:,1:p) = X(:,1).^(1:p); % w/o for loop\par
+  \par
+  % =========================================================================\par
+end\par
+\par
+\ul\b\fs52 validationCurve.m\ulnone\b0\fs22\par
+\par
+function [lambda_vec, error_train, error_val] = ...\par
+      validationCurve(X, y, Xval, yval)\par
+  %VALIDATIONCURVE Generate the train and validation errors needed to\par
+  %plot a validation curve that we can use to select lambda\par
+  %   [lambda_vec, error_train, error_val] = ...\par
+  %       VALIDATIONCURVE(X, y, Xval, yval) returns the train\par
+  %       and validation errors (in error_train, error_val)\par
+  %       for different values of lambda. You are given the training set (X,\par
+  %       y) and validation set (Xval, yval).\par
+  %\par
+  \par
+  % Selected values of lambda (you should not change this)\par
+  lambda_vec = [0 0.001 0.003 0.01 0.03 0.1 0.3 1 3 10]';\par
+  \par
+  % You need to return these variables correctly.\par
+  error_train = zeros(length(lambda_vec), 1);\par
+  error_val = zeros(length(lambda_vec), 1);\par
+  \par
+  % ====================== YOUR CODE HERE ======================\par
+  % Instructions: Fill in this function to return training errors in\par
+  %               error_train and the validation errors in error_val. The\par
+  %               vector lambda_vec contains the different lambda parameters\par
+  %               to use for each calculation of the errors, i.e,\par
+  %               error_train(i), and error_val(i) should give\par
+  %               you the errors obtained after training with\par
+  %               lambda = lambda_vec(i)\par
+  %\par
+  % Note: You can loop over lambda_vec with the following:\par
+  %\par
+  %       for i = 1:length(lambda_vec)\par
+  %           lambda = lambda_vec(i);\par
+  %           % Compute train / val errors when training linear\par
+  %           % regression with regularization parameter lambda\par
+  %           % You should store the result in error_train(i)\par
+  %           % and error_val(i)\par
+  %           ....\par
+  %\par
+  %       end\par
+  %\par
+  %\par
+  \par
+  % Here, X & Xval are already including x0 i.e 1's column in it\par
+  \par
+  m = size(X, 1);\par
+  \par
+  %% %%%%% WORKING: BUT UNNECESSARY for loop for i is inovolved %%%%%%%%%%%\par
+  % for i = 1:m\par
+  %     for j = 1:length(lambda_vec);\par
+  %         lambda = lambda_vec(j);\par
+  %         Xtrain = X(1:i,:);\par
+  %         ytrain = y(1:i);\par
+  %\par
+  %         theta = trainLinearReg(Xtrain, ytrain, lambda);\par
+  %\par
+  %         error_train(j) = linearRegCostFunction(Xtrain, ytrain, theta, 0); % lambda = 0;\par
+  %         error_val(j)   = linearRegCostFunction(Xval, yval, theta, 0); % lambda = 0;\par
+  %     end\par
+  % end\par
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\par
+  \par
+  %% %%%%%%% WORKING: BUT UNNECESSARY for loop for i is inovolved %%%%%%%%%%%\par
+  % for j = 1:length(lambda_vec)\par
+  %     lambda = lambda_vec(j);\par
+  %     for i = 1:m\par
+  %         Xtrain = X(1:i,:);\par
+  %         ytrain = y(1:i);\par
+  %\par
+  %         theta = trainLinearReg(Xtrain, ytrain, lambda);\par
+  %\par
+  %         error_train(j) = linearRegCostFunction(Xtrain, ytrain, theta, 0); % lambda = 0;\par
+  %         error_val(j)   = linearRegCostFunction(Xval, yval, theta, 0); % lambda = 0;\par
+  %     end\par
+  % end\par
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\par
+  \par
+  %% %%% NOT WORKING: BUT UNNECESSARY for loop inside learningCurve function is inovolved %%%%%%\par
+  % for j = 1:length(lambda_vec)\par
+  %     lambda = lambda_vec(j);\par
+  %\par
+  %     [error_train_temp, error_val_temp] = ...\par
+  %     learningCurve(X, y, ...\par
+  %                   Xval, yval, ...\par
+  %                   lambda);\par
+  %\par
+  %     error_train(j) = error_train_temp(end);\par
+  %     error_val(j) = error_val_temp(end);\par
+  % end\par
+   \par
+  %% %%%%% WORKING: OPTIMISED (Only 1 for loop) %%%%%%%%%%%\par
+  for j = 1:length(lambda_vec)\par
+      lambda = lambda_vec(j);\par
+      \par
+      theta = trainLinearReg(X, y, lambda);\par
+      error_train(j) = linearRegCostFunction(X, y, theta, 0); % lambda = 0;\par
+      error_val(j)   = linearRegCostFunction(Xval, yval, theta, 0); % lambda = 0\par
+  end\par
+\par
+  % =========================================================================\par
+  \par
+end\par
+\par
+\par
+\par
+}
+ 

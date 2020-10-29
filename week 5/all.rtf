@@ -1,0 +1,246 @@
+{\rtf1\ansi\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\ul\b\f0\fs52\lang9 sigmoidGradient.m :\ulnone\b0\fs22\par
+\par
+function g = sigmoidGradient(z)\par
+  %SIGMOIDGRADIENT returns the gradient of the sigmoid function\par
+  %evaluated at z\par
+  %   g = SIGMOIDGRADIENT(z) computes the gradient of the sigmoid function\par
+  %   evaluated at z. This should work regardless if z is a matrix or a\par
+  %   vector. In particular, if z is a vector or matrix, you should return\par
+  %   the gradient for each element.\par
+  \par
+  g = zeros(size(z));\par
+  \par
+  % ====================== YOUR CODE HERE ======================\par
+  % Instructions: Compute the gradient of the sigmoid function evaluated at\par
+  %               each value of z (z can be a matrix, vector or scalar).\par
+  \par
+  g = sigmoid(z).*(1-sigmoid(z));\par
+  \par
+  % =============================================================\par
+end\par
+\ul\b\fs44 randInitializeWeights.m :\ulnone\b0\fs22\par
+\par
+function W = randInitializeWeights(L_in, L_out)\par
+  %RANDINITIALIZEWEIGHTS Randomly initialize the weights of a layer with L_in\par
+  %incoming connections and L_out outgoing connections\par
+  %   W = RANDINITIALIZEWEIGHTS(L_in, L_out) randomly initializes the weights \par
+  %   of a layer with L_in incoming connections and L_out outgoing \par
+  %   connections. \par
+  %\par
+  %   Note that W should be set to a matrix of size(L_out, 1 + L_in) as\par
+  %   the first column of W handles the "bias" terms\par
+  %\par
+  \par
+  % You need to return the following variables correctly \par
+  W = zeros(L_out, 1 + L_in);\par
+  \par
+  % ====================== YOUR CODE HERE ======================\par
+  % Instructions: Initialize W randomly so that we break the symmetry while\par
+  %               training the neural network.\par
+  %\par
+  % Note: The first column of W corresponds to the parameters for the bias unit\par
+  %\par
+  % epsilon_init = 0.12;\par
+  \par
+  epsilon_init = sqrt(6)/(sqrt(L_in)+sqrt(L_out));\par
+  W = - epsilon_init + rand(L_out, 1 + L_in) * 2 * epsilon_init ;\par
+  \par
+  % =========================================================================\par
+end \par
+\ul\b\fs40 nnCostFunction.m\ulnone\b0\fs22\par
+\par
+function [J, grad] = nnCostFunction(nn_params, ...\par
+      input_layer_size, ...\par
+      hidden_layer_size, ...\par
+      num_labels, ...\par
+      X, y, lambda)\par
+  %NNCOSTFUNCTION Implements the neural network cost function for a two layer\par
+  %neural network which performs classification\par
+  %   [J grad] = NNCOSTFUNCTON(nn_params, hidden_layer_size, num_labels, ...\par
+  %   X, y, lambda) computes the cost and gradient of the neural network. The\par
+  %   parameters for the neural network are "unrolled" into the vector\par
+  %   nn_params and need to be converted back into the weight matrices.\par
+  %\par
+  %   The returned parameter grad should be a "unrolled" vector of the\par
+  %   partial derivatives of the neural network.\par
+  %\par
+  \par
+  % Reshape nn_params back into the parameters Theta1 and Theta2, the weight matrices\par
+  % for our 2 layer neural network\par
+  % DIMENSIONS:\par
+  % Theta1 = 25 x 401\par
+  % Theta2 = 10 x 26\par
+  \par
+  Theta1 = reshape(nn_params(1:hidden_layer_size * (input_layer_size + 1)), ...\par
+      hidden_layer_size, (input_layer_size + 1));\par
+  \par
+  Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):end), ...\par
+      num_labels, (hidden_layer_size + 1));\par
+  \par
+  % Setup some useful variables\par
+  m = size(X, 1);\par
+  \par
+  % You need to return the following variables correctly\par
+  J = 0;\par
+  Theta1_grad = zeros(size(Theta1)); %25 x401\par
+  Theta2_grad = zeros(size(Theta2)); %10 x 26\par
+  \par
+  % ====================== YOUR CODE HERE ======================\par
+  % Instructions: You should complete the code by working through the\par
+  %               following parts.\par
+  %\par
+  % Part 1: Feedforward the neural network and return the cost in the\par
+  %         variable J. After implementing Part 1, you can verify that your\par
+  %         cost function computation is correct by verifying the cost\par
+  %         computed in ex4.m\par
+  %\par
+  % Part 2: Implement the backpropagation algorithm to compute the gradients\par
+  %         Theta1_grad and Theta2_grad. You should return the partial derivatives of\par
+  %         the cost function with respect to Theta1 and Theta2 in Theta1_grad and\par
+  %         Theta2_grad, respectively. After implementing Part 2, you can check\par
+  %         that your implementation is correct by running checkNNGradients\par
+  %\par
+  %         Note: The vector y passed into the function is a vector of labels\par
+  %               containing values from 1..K. You need to map this vector into a\par
+  %               binary vector of 1's and 0's to be used with the neural network\par
+  %               cost function.\par
+  %\par
+  %         Hint: We recommend implementing backpropagation using a for-loop\par
+  %               over the training examples if you are implementing it for the\par
+  %               first time.\par
+  %\par
+  % Part 3: Implement regularization with the cost function and gradients.\par
+  %\par
+  %         Hint: You can implement this around the code for\par
+  %               backpropagation. That is, you can compute the gradients for\par
+  %               the regularization separately and then add them to Theta1_grad\par
+  %               and Theta2_grad from Part 2.\par
+  %\par
+  \par
+  %%%%%%%%%%% Part 1: Calculating J w/o Regularization %%%%%%%%%%%%%%%\par
+  \par
+  X = [ones(m,1), X];  % Adding 1 as first column in X\par
+  \par
+  a1 = X; % 5000 x 401\par
+  \par
+  z2 = a1 * Theta1';  % m x hidden_layer_size == 5000 x 25\par
+  a2 = sigmoid(z2); % m x hidden_layer_size == 5000 x 25\par
+  a2 = [ones(size(a2,1),1), a2]; % Adding 1 as first column in z = (Adding bias unit) % m x (hidden_layer_size + 1) == 5000 x 26\par
+  \par
+  z3 = a2 * Theta2';  % m x num_labels == 5000 x 10\par
+  a3 = sigmoid(z3); % m x num_labels == 5000 x 10\par
+  \par
+  h_x = a3; % m x num_labels == 5000 x 10\par
+  \par
+  %Converting y into vector of 0's and 1's for multi-class classification\par
+  \par
+  %%%%% WORKING %%%%%\par
+  % y_Vec = zeros(m,num_labels);\par
+  % for i = 1:m\par
+  %     y_Vec(i,y(i)) = 1;\par
+  % end\par
+  %%%%%%%%%%%%%%%%%%%\par
+  \par
+  y_Vec = (1:num_labels)==y; % m x num_labels == 5000 x 10\par
+  \par
+  %Costfunction Without regularization\par
+  J = (1/m) * sum(sum((-y_Vec.*log(h_x))-((1-y_Vec).*log(1-h_x))));  %scalar\par
+  \par
+  \par
+  %%%%%%%%%%% Part 2: Implementing Backpropogation for Theta_gra w/o Regularization %%%%%%%%%%%%%\par
+  \par
+  %%%%%%% WORKING: Backpropogation using for loop %%%%%%%\par
+  % for t=1:m\par
+  %     % Here X is including 1 column at begining\par
+  %     \par
+  %     % for layer-1\par
+  %     a1 = X(t,:)'; % (n+1) x 1 == 401 x 1\par
+  %     \par
+  %     % for layer-2\par
+  %     z2 = Theta1 * a1;  % hidden_layer_size x 1 == 25 x 1\par
+  %     a2 = [1; sigmoid(z2)]; % (hidden_layer_size+1) x 1 == 26 x 1\par
+  %   \par
+  %     % for layer-3\par
+  %     z3 = Theta2 * a2; % num_labels x 1 == 10 x 1    \par
+  %     a3 = sigmoid(z3); % num_labels x 1 == 10 x 1    \par
+  % \par
+  %     yVector = (1:num_labels)'==y(t); % num_labels x 1 == 10 x 1    \par
+  %     \par
+  %     %calculating delta values\par
+  %     delta3 = a3 - yVector; % num_labels x 1 == 10 x 1    \par
+  %     \par
+  %     delta2 = (Theta2' * delta3) .* [1; sigmoidGradient(z2)]; % (hidden_layer_size+1) x 1 == 26 x 1\par
+  %     \par
+  %     delta2 = delta2(2:end); % hidden_layer_size x 1 == 25 x 1 %Removing delta2 for bias node  \par
+  %     \par
+  %     % delta_1 is not calculated because we do not associate error with the input  \par
+  %     \par
+  %     % CAPITAL delta update\par
+  %     Theta1_grad = Theta1_grad + (delta2 * a1'); % 25 x 401\par
+  %     Theta2_grad = Theta2_grad + (delta3 * a2'); % 10 x 26\par
+  %  \par
+  % end\par
+  % \par
+  % Theta1_grad = (1/m) * Theta1_grad; % 25 x 401\par
+  % Theta2_grad = (1/m) * Theta2_grad; % 10 x 26\par
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\par
+  \par
+  %%%%%% WORKING: Backpropogation (Vectorized Implementation) %%%%%%%\par
+  % Here X is including 1 column at begining\par
+  A1 = X; % 5000 x 401\par
+  \par
+  Z2 = A1 * Theta1';  % m x hidden_layer_size == 5000 x 25\par
+  A2 = sigmoid(Z2); % m x hidden_layer_size == 5000 x 25\par
+  A2 = [ones(size(A2,1),1), A2]; % Adding 1 as first column in z = (Adding bias unit) % m x (hidden_layer_size + 1) == 5000 x 26\par
+  \par
+  Z3 = A2 * Theta2';  % m x num_labels == 5000 x 10\par
+  A3 = sigmoid(Z3); % m x num_labels == 5000 x 10\par
+  \par
+  % h_x = a3; % m x num_labels == 5000 x 10\par
+  \par
+  y_Vec = (1:num_labels)==y; % m x num_labels == 5000 x 10\par
+  \par
+  DELTA3 = A3 - y_Vec; % 5000 x 10\par
+  DELTA2 = (DELTA3 * Theta2) .* [ones(size(Z2,1),1) sigmoidGradient(Z2)]; % 5000 x 26\par
+  DELTA2 = DELTA2(:,2:end); % 5000 x 25 %Removing delta2 for bias node\par
+  \par
+  Theta1_grad = (1/m) * (DELTA2' * A1); % 25 x 401\par
+  Theta2_grad = (1/m) * (DELTA3' * A2); % 10 x 26\par
+  \par
+  %%%%%%%%%%%% WORKING: DIRECT CALCULATION OF THETA GRADIENT WITH REGULARISATION %%%%%%%%%%%\par
+  % %Regularization term is later added in Part 3\par
+  % Theta1_grad = (1/m) * Theta1_grad + (lambda/m) * [zeros(size(Theta1, 1), 1) Theta1(:,2:end)]; % 25 x 401\par
+  % Theta2_grad = (1/m) * Theta2_grad + (lambda/m) * [zeros(size(Theta2, 1), 1) Theta2(:,2:end)]; % 10 x 26\par
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\par
+  \par
+  \par
+  %%%%%%%%%%%% Part 3: Adding Regularisation term in J and Theta_grad %%%%%%%%%%%%%\par
+  reg_term = (lambda/(2*m)) * (sum(sum(Theta1(:,2:end).^2)) + sum(sum(Theta2(:,2:end).^2))); %scalar\par
+  \par
+  %Costfunction With regularization\par
+  J = J + reg_term; %scalar\par
+  \par
+  %Calculating gradients for the regularization\par
+  Theta1_grad_reg_term = (lambda/m) * [zeros(size(Theta1, 1), 1) Theta1(:,2:end)]; % 25 x 401\par
+  Theta2_grad_reg_term = (lambda/m) * [zeros(size(Theta2, 1), 1) Theta2(:,2:end)]; % 10 x 26\par
+  \par
+  %Adding regularization term to earlier calculated Theta_grad\par
+  Theta1_grad = Theta1_grad + Theta1_grad_reg_term;\par
+  Theta2_grad = Theta2_grad + Theta2_grad_reg_term;\par
+  \par
+  % -------------------------------------------------------------\par
+  \par
+  % =========================================================================\par
+  \par
+  % Unroll gradients\par
+  grad = [Theta1_grad(:) ; Theta2_grad(:)];\par
+\par
+end\par
+\par
+\par
+\par
+\par
+}
+ 
